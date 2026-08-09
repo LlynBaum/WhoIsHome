@@ -1,4 +1,4 @@
-﻿### Build Project ###
+### Build Project ###
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
@@ -15,6 +15,12 @@ RUN dotnet publish -c Release --no-restore --output ./out
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
+
+# Install native dependencies required for Kerberos/GSSAPI (Npgsql / PostgreSQL / GSS authentication) and curl for health checks
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/src/WhoIsHome.Host/out ./
 
 EXPOSE 8080
